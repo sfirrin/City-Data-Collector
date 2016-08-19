@@ -71,7 +71,7 @@ def get_cities(stations):
             try:
                 # print(station)
                 city['climate'] = get_station_weather(copy.deepcopy(station))
-                city['station'] = copy.deepcopy(station)
+                # city['station'] = copy.deepcopy(station)
                 print(station['ghcn_id'], station['distance'])
                 break
             except ValueError as ve:
@@ -331,7 +331,7 @@ def remove_noncentral_months(city):
     I had the idea to show the middle months of each season, rather than the season statistics
     The idea being that the individual months will tell a more concrete story than the seasons
     :param city: The city dictionary produced by get_cities
-    :return: The same city dicitonary, with the extra months removed
+    :return: Nothing, mutates city in place
     """
 
     original_climate = city.pop('climate')
@@ -474,49 +474,40 @@ def add_city_info(cities, download=False):
         city['wiki_intro'] = intro
 
 
+def remove_extra_fields(cities):
+    """
+    Removes the fields from the city dictionary that are not used in the CityBrowser interface
+    to reduce the size of the JSON
+    :param cities: A list of city dictionaries
+    :return: Nothing, mutates the city dictionaries in place
+    """
+    for city in cities:
+        remove_noncentral_months(city)
+        city['climate'].pop('mean_precip')
+        city['climate'].pop('record_high')
+        city['climate'].pop('record_low')
+        city['climate'].pop('station')
+        city.pop('growth_rate')
+        city.pop('latitude')
+        city.pop('longitude')
+        city.pop('region')
+        city.pop('county')
+        city.pop('state')
+
+
 def main():
     raleigh = (35.7796, -78.6382)
     cary = (35.7915, -78.7811)
     asheville = (35.5951, -82.5515)
     nc_state = (35.7847, -78.6821)
 
-
-    # station, weather = get_weather(asheville)
-    # print(station['name'])
-    # from pprint import pprint
-    # pprint(weather)
-
-    # station_id = 'USC00305796'
-    # get_min_max_mean_record(station_id)
-
-
-
     stations = get_stations_dict()
-    # from pprint import pprint
-    # pprint(get_weather(asheville))
-    # pprint(get_nearest_station(raleigh, stations))
     cities = get_cities(stations)
-    # cities = json.load(open('cities.json', 'rb'))
 
     add_city_info(cities)
-    # for city in cities:
-    #     print(city['climate']['station']['ghcn_id'])
-    # template_filler.get_weatherbox(cities[0])
-    # #
-
-        # print(photo_url)
-
+    remove_extra_fields(cities)
 
     json.dump(cities, open('cities.json', 'wb'))
 
-
-    # from pprint import pprint
-    # pprint(get_monthly_normals(line))
-    # i = 0
-    # for month in line.split():
-    #     print(i)
-    #     print(month)
-    #     print('')
-    #     i += 1
 
 main()
